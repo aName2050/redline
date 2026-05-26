@@ -2,7 +2,7 @@ from machine import Pin, PWM
 
 leds = {}
 
-def initLED(name, pinR, pinG, pinB):
+def initLED(name: str, pinR: int, pinG: int, pinB: int):
     if name in leds:
         print(f"LED '{name}' already initialized")
         return False
@@ -22,7 +22,7 @@ def initLED(name, pinR, pinG, pinB):
 
     return True
 
-def setLED(name, r, g, b, a=1.0):
+def setLED(name: str, r: float, g: float, b: float, a=1.0):
     # a = brightness
     if name not in leds:
         print(f"LED '{name}' not initialized")
@@ -37,7 +37,7 @@ def setLED(name, r, g, b, a=1.0):
 
     return True
 
-def turnOffLED(name):
+def turnOffLED(name: str):
     setLED(name, 0, 0, 0, 0)
 
 
