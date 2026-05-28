@@ -8,7 +8,7 @@ wifi = wifi_manager.WiFiManager(led)
 # boot
 led.setState(led.BOOTING)
 start = time.ticks_ms() # one day i'll optimize this so its goes lightning fast
-while time.ticks_diff(time.ticks_ms(), start) < 4000:
+while time.ticks_diff(time.ticks_ms(), start) < 6000:
     led.updateLED()
 
 # get the wifi up

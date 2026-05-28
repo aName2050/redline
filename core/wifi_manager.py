@@ -30,6 +30,13 @@ class WiFiManager:
 
         self._ap.ifconfig((IP, SUBNET, GATEWAY, DNS))
 
+        print("[WiFiManager] Waiting for AP to start...")
+        start_delay = time.ticks_ms()
+        while time.ticks_diff(time.ticks_ms(), start_delay) < 2000:
+            if self._led:
+                self._led.updateLED()
+            time.sleep_ms(20)
+
         start = time.ticks_ms()
         while not self._ap.active():
             if time.ticks_diff(time.ticks_ms(), start) > 5000:
