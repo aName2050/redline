@@ -18,10 +18,22 @@ motorRF = GearboxMotor(20, 21)
 motorRR = GearboxMotor(10, 11)
 
 # drive forward for 5 seconds
-motorLF.setSpeed(0.0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorLR.setSpeed(0.0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorRF.setSpeed(0.0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorRR.setSpeed(0.0, motorLF.CONTROL_TYPE['duty_cycle'])
+motorLF.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
+motorLR.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
+motorRF.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
+motorRR.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
+
+start = time.ticks_ms()
+while time.ticks_diff(time.ticks_ms(), start) < 5000:
+    led.updateLED()
+    rsl.update()
+    motorStatus.update(motorLF.current_speed, motorRF.current_speed)
+
+motorLF.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
+motorLR.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
+motorRF.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
+motorRR.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
+
 
 # boot
 led.setState(led.BOOTING)

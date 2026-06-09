@@ -4,7 +4,7 @@ import time
 
 _GREEN = (0, 255, 0) # FORWARD
 _RED = (255, 0, 0) # REVERSE
-_BLUE = (0, 0, 255) # STALL
+_BLUE = (0, 0, 255) # IDLE
 _WHITE = (255, 255, 255)
 _OFF = (0, 0, 0)
 
@@ -31,8 +31,8 @@ class MotorStatusLED:
 
     def setDisabled(self) -> None:
         self.disabled = True
-        self._setPixel(self.LEFT, *_OFF)
-        self._setPixel(self.RIGHT, *_OFF)
+        self._setPixel(self.LEFT, *_BLUE)
+        self._setPixel(self.RIGHT, *_BLUE)
         self.pixels.write()
 
     def setEnabled(self) -> None:
@@ -48,7 +48,7 @@ class MotorStatusLED:
     # internal
     def _speedToColor(self, speed: float) -> tuple:
         if abs(speed) < self._DEADBAND:
-            return _OFF
+            return _BLUE
         elif speed > 0.0:
             return _GREEN
         else:
