@@ -1,7 +1,7 @@
 from machine import Pin, PWM
 import time
 
-_ORANGE = (255, 165, 0)
+_ORANGE = (255, 126, 0)
 _RED = (255, 0, 0)
 _OFF = (0, 0, 0)
 
@@ -27,7 +27,7 @@ class RSL:
         self.state = self.OFF
         self.led_on = False
         self.last_tick = time.ticks_ms()
-        self.blink_ms = 900
+        self.blink_ms = 450
 
         self._setColor(*_OFF)
 
