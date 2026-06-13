@@ -3,6 +3,8 @@ from core.status_led import StatusLED
 from core.rsl import RSL
 from core.motor_status import MotorStatusLED
 from core.gearbox_motor import GearboxMotor
+from core.imu import IMU
+
 import time
 import uasyncio as asyncio
 
@@ -11,29 +13,16 @@ led = StatusLED()
 wifi = WiFiManager(led)
 rsl = RSL(pinR=6, pinG=7, pinB=8)
 motorStatus = MotorStatusLED()
+imu = IMU()
+imu.calibrate()
 
-motorLF = GearboxMotor(12, 13)
-motorLR = GearboxMotor(14, 15)
-motorRF = GearboxMotor(20, 21)
+motorLF = GearboxMotor(14, 15)
+motorLR = GearboxMotor(20, 21)
+motorRF = GearboxMotor(12, 13)
 motorRR = GearboxMotor(10, 11)
 
-# drive forward for 5 seconds
-motorLF.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorLR.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorRF.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorRR.setSpeed(1.0, motorLF.CONTROL_TYPE['duty_cycle'])
-
-start = time.ticks_ms()
-while time.ticks_diff(time.ticks_ms(), start) < 5000:
-    led.updateLED()
-    rsl.update()
-    motorStatus.update(motorLF.current_speed, motorRF.current_speed)
-
-motorLF.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorLR.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorRF.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
-motorRR.setSpeed(0, motorLF.CONTROL_TYPE['duty_cycle'])
-
+motorLF.setInverse(True)
+motorRR.setInverse(True)
 
 # boot
 led.setState(led.BOOTING)
@@ -56,9 +45,17 @@ if not wifi.start():
         # this is temp and eventually i'll add proper fault handling
         # but not today :)
 
+# tasks
+async def imu_task():
+    while True:
+        imu.update()
+        await asyncio.sleep_ms(10)
+
 # main loop
 # this is where the fun stuff is
 async def main():
+    asyncio.create_task(imu_task())
+
     while True:
         led.updateLED()
         rsl.update()
@@ -72,5 +69,7 @@ async def main():
             led.setState(led.WIFI_CONNECTED)
             rsl.setState(rsl.DISABLED)
             motorStatus.setDisabled()
+
+        await asyncio.sleep_ms(20)
 
 asyncio.run(main())

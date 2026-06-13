@@ -15,6 +15,8 @@ class GearboxMotor:
         self.fwd.duty_u16(0)
         self.rev.duty_u16(0)
 
+        self.inverse = False
+
         self.current_speed = 0
 
         self.state = 'stopped'
@@ -25,6 +27,9 @@ class GearboxMotor:
     def setSpeed(self, speed: float, controlType: int) -> None:
         speed = max(-1.0, min(1.0, speed))
         self.current_speed = speed
+
+        if self.inverse:
+            speed = -speed
 
         if controlType == self.CONTROL_TYPE['duty_cycle']:
             if speed > 0:
@@ -47,3 +52,6 @@ class GearboxMotor:
         self.fwd.duty_u16(0)
         self.rev.duty_u16(0)
         self.state = 'stopped'
+
+    def setInverse(self, inverse: bool) -> None:
+        self.inverse = inverse
