@@ -5,28 +5,29 @@ import time
 # pls dont steal my wifi creds :(
 SSID = "REDLINE"
 PASSWORD = "RL-2040-XBEE"
-IP = "172.31.255.1"
+IP = "192.168.4.1"
 SUBNET = "255.255.255.0"
-GATEWAY = "172.31.255.1"
-DNS = "172.31.255.1"
-CHANNEL = 6
+GATEWAY = "192.168.4.1"
+DNS = "192.168.4.1"
 
 class WiFiManager:
     def __init__(self, status_led=None) -> None:
         self._led = status_led
-        self._ap = network.WLAN(network.AP_IF)
+        self._ap = network.WLAN(network.WLAN.IF_AP)
 
     def start(self) -> bool:
         self._setLED("wifi_connect")
         print("[WiFiManager] Starting 2.4GHz wireless AP...")
 
         self._ap.active(True)
+
         self._ap.config(
             ssid = SSID,
-            password = PASSWORD,
-            channel = CHANNEL,
-            security = 4 # WPA2-PSK
+            key = PASSWORD,
+            auth = 4 # WPA2-PSK
         )
+
+        time.sleep(0.5)
 
         self._ap.ifconfig((IP, SUBNET, GATEWAY, DNS))
 
@@ -44,9 +45,8 @@ class WiFiManager:
 
         print("[WiFiManager] It's alive!!! :D")
         print(f"[WiFiManager] SSID: {SSID}")
-        print(f"[WiFiManager] IP: {IP}")
+        print(f"[WiFiManager] IP: {self.getAddress()}")
         print(f"[WiFiManager] PASSWORD: {PASSWORD}")
-        print(f"[WiFiManager] CHANNEL: {CHANNEL}")
         self._setLED("wifi_connected")
         return True
 
@@ -70,6 +70,9 @@ class WiFiManager:
 
     def hasClient(self) -> bool:
         return self.getClientCount() > 0
+
+    def getAddress(self):
+        return self._ap.ifconfig()[0]
 
     # internal
     def _setLED(self, state: str) -> None:

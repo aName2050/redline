@@ -72,8 +72,6 @@ class IMU:
         self.pitch = alpha*self.pitch + (1-alpha)*accel_pitch
         self.roll  = alpha*self.roll  + (1-alpha)*accel_roll
 
-        print(self.pitch, self.roll, self.yaw)
-
     def get(self):
         return {
             "pitch": math.degrees(self.pitch),

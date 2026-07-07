@@ -5,16 +5,34 @@ from core.motor_status import MotorStatusLED
 from core.gearbox_motor import GearboxMotor
 from core.imu import IMU
 
+from core.network.server import Server
+
 import time
 import uasyncio as asyncio
+import sys
+import machine
+
+rsl = RSL(pinR=6, pinG=7, pinB=8)
+
+# hardware abort
+abort_pin = machine.Pin(16, machine.Pin.IN, machine.Pin.PULL_UP)
+if abort_pin.value() == 0:
+    print("ABORTING BOOT SEQUENCE...")
+    rsl.setState(rsl.ABORT)
+    rsl.update()
+    time.sleep(0.5)
+    raise KeyboardInterrupt("BOOT_ABORT")
+
+print("Booting REDLINE...")
+time.sleep(2)
 
 # init
 led = StatusLED()
 wifi = WiFiManager(led)
-rsl = RSL(pinR=6, pinG=7, pinB=8)
 motorStatus = MotorStatusLED()
 imu = IMU()
 imu.calibrate()
+server = Server()
 
 motorLF = GearboxMotor(14, 15)
 motorLR = GearboxMotor(20, 21)
@@ -45,6 +63,8 @@ if not wifi.start():
         # this is temp and eventually i'll add proper fault handling
         # but not today :)
 
+server.start()
+
 # tasks
 async def imu_task():
     while True:
@@ -55,12 +75,15 @@ async def imu_task():
 # this is where the fun stuff is
 async def main():
     asyncio.create_task(imu_task())
+    asyncio.create_task(server.update())
 
     while True:
         led.updateLED()
         rsl.update()
 
-        if wifi.hasClient():
+        control = server.getControl()
+
+        if server.isConnected():
             led.setState(led.ENABLED)
             rsl.setState(rsl.ENABLED)
             motorStatus.setEnabled()
@@ -69,6 +92,9 @@ async def main():
             led.setState(led.WIFI_CONNECTED)
             rsl.setState(rsl.DISABLED)
             motorStatus.setDisabled()
+
+        if control:
+            print(control)
 
         await asyncio.sleep_ms(20)
 

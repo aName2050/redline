@@ -4,12 +4,14 @@ import time
 _ORANGE = (255, 126, 0)
 _RED = (255, 0, 0)
 _OFF = (0, 0, 0)
+_BLUE = (0, 0, 200)
 
 class RSL:
     OFF = "off"
     DISABLED = "disabled"
     ENABLED = "enabled"
     ESTOP = "estop"
+    ABORT = "abort"
 
     def __init__(self, pinR: int, pinG: int, pinB: int, freq: int = 1000) -> None:
         self.r = PWM(Pin(pinR))
@@ -45,6 +47,8 @@ class RSL:
             self._setColor(*_ORANGE)
         elif state == self.ESTOP:
             self._setColor(*_RED)
+        elif state == self.ABORT:
+            self._setColor(*_BLUE)
 
     def getState(self) -> str:
         return self.state
