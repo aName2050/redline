@@ -9,6 +9,7 @@ IP = "192.168.4.1"
 SUBNET = "255.255.255.0"
 GATEWAY = "192.168.4.1"
 DNS = "192.168.4.1"
+CHANNEL = 6
 
 class WiFiManager:
     def __init__(self, status_led=None) -> None:
@@ -24,7 +25,8 @@ class WiFiManager:
         self._ap.config(
             ssid = SSID,
             key = PASSWORD,
-            auth = 4 # WPA2-PSK
+            security = network.WLAN.SEC_WPA_WPA2, # WPA2-PSK
+            channel = CHANNEL
         )
 
         time.sleep(0.5)

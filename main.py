@@ -6,6 +6,7 @@ from core.gearbox_motor import GearboxMotor
 from core.imu import IMU
 
 from core.network.server import Server
+import core.network.protocol as protocol
 
 import time
 import uasyncio as asyncio
@@ -85,7 +86,7 @@ async def main():
 
         if server.isConnected():
             led.setState(led.ENABLED)
-            rsl.setState(rsl.ENABLED)
+            rsl.setState(rsl.ENABLED if bool(control and (control["flags"] & protocol.FLAG_ENABLE)) else rsl.DISABLED)
             motorStatus.setEnabled()
             motorStatus.update(motorLF.getSpeed(), motorRF.getSpeed())
         else:

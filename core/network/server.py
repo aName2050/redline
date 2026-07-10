@@ -4,6 +4,7 @@ import uasyncio as asyncio
 from core.network.packet import Packet
 from core.network.watchdog import Watchdog
 import core.network.protocol as protocol
+import time
 
 class Server:
     def __init__(self) -> None:
@@ -14,6 +15,7 @@ class Server:
         self._control = None # latest valid command packet
         self._sequence = 0
         self._running = False
+        self._lastTelemetry = time.ticks_ms()
 
     def start(self):
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -49,7 +51,7 @@ class Server:
         return self._control
 
     def getWatchdog(self):
-        self._watchdog
+        return self._watchdog
 
     # send packets
     def _send(self, data: bytes, address):
@@ -68,8 +70,23 @@ class Server:
         if self._sequence > protocol.MAX_SEQUENCE:
             self._sequence = 0
 
+    def _sendTelemetry(self):
+        if self._driver is None:
+            return
+
+        packet = Packet.encodeTelemetry(
+            flags=0,
+            sequence=self._sequence,
+            enabled=self._control is not None
+        )
+
+        self._send(packet, self._driver)
+        self._sequence = (self._sequence + 1) & protocol.MAX_SEQUENCE
+
+
     # handle packets
     def _handleDiscovery(self, address):
+        print(f"[Server] Discovery request from {address}")
         self._sendDiscoveryReply(address)
 
     def _claimDriver(self, address):
@@ -93,7 +110,14 @@ class Server:
         self._control = packet
         self._watchdog.feed()
 
+        enabled = (packet["flags"] & protocol.FLAG_ENABLE) != 0
+        estop = (packet["flags"] & protocol.FLAG_ESTOP) != 0
+
+        self.enabled = enabled
+        self.estopped = estop
+
     def _handleHeartbeat(self, address):
+        self._claimDriver(address)
         if address == self._driver:
             self._watchdog.feed()
 
@@ -102,7 +126,13 @@ class Server:
         while self._running:
             # watchdog timer
             if self._driver and self._watchdog.hasTimedOut():
+                print(f"[Watchdog] Timeout ({self._watchdog.elapsed()} ms)")
                 self._releaseDriver()
+
+            # telemetry feed @ 20Hz
+            if self._driver and time.ticks_diff(time.ticks_ms(), self._lastTelemetry) >= 50:
+                self._sendTelemetry()
+                self._lastTelemetry = time.ticks_ms()
 
             events = self._poll.poll(0)
 
@@ -112,6 +142,7 @@ class Server:
 
                 try:
                     data, address = self._socket.recvfrom(protocol.MAX_PACKET_SIZE) # type: ignore
+                    # print(f"[Server] (UDP RX) {address}: {data.hex()}")
                 except OSError:
                     continue
 

@@ -11,7 +11,7 @@ class Packet:
     HEARTBEAT_FORMAT = HEADER_FORMAT
     PING_FORMAT = HEADER_FORMAT
     DISCOVERY_REQUEST_FORMAT = HEADER_FORMAT
-    # TODO: telemetry format
+    TELEMETRY_FORMAT = HEADER_FORMAT + "B"
     DISCOVERY_REPLY_FORMAT = HEADER_FORMAT + "HB"
 
     @staticmethod
@@ -161,4 +161,27 @@ class Packet:
             "sequence": values[3],
             "port": values[4],
             "name": robotName
+        }
+
+    @staticmethod
+    def encodeTelemetry(flags: int, sequence: int, enabled: bool) -> bytes:
+        return struct.pack(
+            Packet.TELEMETRY_FORMAT,
+            protocol.PROTOCOL_VERSION,
+            protocol.PACKET_TELEMETRY,
+            flags,
+            sequence,
+            1 if enabled else 0
+        )
+
+    @staticmethod
+    def decodeTelemetry(data: bytes):
+        values = struct.unpack(Packet.TELEMETRY_FORMAT, data)
+
+        return {
+            "version": values[0],
+            "type": values[1],
+            "flags": values[2],
+            "sequence": values[3],
+            "enabled": values[4] != 0
         }
