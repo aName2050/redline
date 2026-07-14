@@ -75,7 +75,7 @@ async def imu_task():
 # main loop
 # this is where the fun stuff is
 async def main():
-    asyncio.create_task(imu_task())
+    # asyncio.create_task(imu_task())
     asyncio.create_task(server.update())
 
     while True:
@@ -88,14 +88,35 @@ async def main():
             led.setState(led.ENABLED)
             rsl.setState(rsl.ENABLED if bool(control and (control["flags"] & protocol.FLAG_ENABLE)) else rsl.DISABLED)
             motorStatus.setEnabled()
-            motorStatus.update(motorLF.getSpeed(), motorRF.getSpeed())
         else:
             led.setState(led.WIFI_CONNECTED)
             rsl.setState(rsl.DISABLED)
             motorStatus.setDisabled()
 
-        if control:
-            print(control)
+        if control and (control["flags"] & protocol.FLAG_ENABLE):
+            if control["driveMode"] == protocol.DRIVEMODE_ARCADE:
+                throttle = control["throttle"] / 100.0
+                steering = control["steering"] / 100.0
+
+                left = max(-1.0, min(1.0, throttle + steering))
+                right = max(-1.0, min(1.0, throttle - steering))
+
+            else:
+                left = control["left"] / 100.0
+                right = control["right"] / 100.0
+
+            motorLF.setSpeed(left, GearboxMotor.CONTROL_TYPE['duty_cycle'])
+            motorLR.setSpeed(left, GearboxMotor.CONTROL_TYPE['duty_cycle'])
+            motorRF.setSpeed(right, GearboxMotor.CONTROL_TYPE['duty_cycle'])
+            motorRR.setSpeed(right, GearboxMotor.CONTROL_TYPE['duty_cycle'])
+
+        else:
+            motorLF.stopMotor()
+            motorLR.stopMotor()
+            motorRF.stopMotor()
+            motorRR.stopMotor()
+
+        motorStatus.update(motorLF.getSpeed(), motorRF.getSpeed())
 
         await asyncio.sleep_ms(20)
 

@@ -42,3 +42,8 @@ FLAG_ESTOP = 1 << 1
 
 # robot security (we dont want randoms connecting to the robot cuz that would be bad)
 MAX_DRIVER_COUNT = 1
+
+# robot drive modes
+DRIVEMODE_ARCADE = 0x00
+DRIVEMODE_TANK = 0x01
+DRIVEMODE_INDEPENDENT = 0x02
